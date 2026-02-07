@@ -1,49 +1,36 @@
 # 🛡️ Connectly API: Secure Micro-Blogging Backend
 
 ## 🚀 Project Overview
-A robust RESTful API built with **Django** and **Django Rest Framework (DRF)**. This project demonstrates advanced backend architecture, including token-based authentication, object-level security, and the integration of software design patterns.
+Connectly is a production-ready RESTful API built with **Django** and **DRF**. It features a decoupled architecture where business logic is handled via design patterns and data access is strictly governed by token-based authentication.
 
 ---
 
 ## 🏗️ Architectural Design Patterns
+To ensure scalability and separation of concerns, the following patterns were implemented:
 
-To meet professional software engineering standards, the system incorporates the following patterns:
+### 1. Singleton Pattern (`APISettings`)
+* **Purpose:** Ensures a single, global point of configuration for API constraints.
+* **Function:** Manages system-wide limits (e.g., `max_content_length = 500`) to prevent memory waste and ensure data consistency.
 
-### 1. Singleton Pattern
-Ensures a single instance of API configuration exists across the application lifecycle.
-* **Implementation:** The `APISettings` class manages global constraints (like max character limits) ensuring consistent state across all requests.
-
-### 2. Factory Pattern
-Decouples the creation of objects from the view logic.
-* **Implementation:** The `PostFactory` handles the instantiation of `Post` objects. This allows for centralized validation and logging before data is committed to the database.
-
----
-
-## 🔒 Security Implementation
-
-### Authentication & Authorization
-* **Token Validation:** All requests require an `Authorization: Token <key>` header.
-* **Access Control:** Implemented `IsAuthenticated` to block anonymous traffic.
-* **Object-Level Security:** A logic gate ensures that only the original author can `UPDATE` or `DELETE` a specific post.
-
-### Data Integrity
-* **Automated Author Mapping:** The `author` field is read-only for the client. The server extracts the user identity directly from the validated token, preventing identity spoofing.
+### 2. Factory Pattern (`PostFactory`)
+* **Purpose:** Decouples object instantiation from the View layer.
+* **Function:** Centralizes the creation logic for `Post` objects. The View layer delegates creation to the Factory, which performs validation against the Singleton settings before saving to the database.
 
 ---
 
-## 🛠️ API Endpoints & Testing
+## 🔒 Security & Data Integrity
+The system employs a multi-layered security approach:
 
-| Method | Endpoint | Description | Expected Status |
-| :--- | :--- | :--- | :--- |
-| **GET** | `/posts/` | Retrieve all posts | 200 OK |
-| **POST** | `/posts/` | Create a new post | 201 Created |
-| **PUT** | `/posts/<id>/` | Update an owned post | 200 OK |
-| **DELETE** | `/posts/<id>/` | Remove an owned post | 204 No Content |
+* **Token Authentication:** All endpoints are protected via `TokenAuthentication`. Anonymous requests are rejected with a `401 Unauthorized` status.
+* **Object-Level Access Control:** Custom logic in the `PUT` and `DELETE` methods ensures that users can only modify or remove content they personally authored.
+* **Automatic Author Attribution:** To prevent identity spoofing, the `author` field is assigned automatically by the backend via the request token, rather than trusting client-side input.
 
 ---
 
-## 📋 Installation & Setup
-1. **Clone the repo:** `git clone <repo-url>`
-2. **Install dependencies:** `pip install django djangorestframework`
-3. **Migrate Database:** `python manage.py migrate`
-4. **Run Server:** `python manage.py runserver`
+## 🛠️ Functional Summary (API Endpoints)
+
+| Method | Endpoint | Security | Design Pattern Involved | Expected Status |
+| :--- | :--- | :--- | :--- | :--- |
+| **GET** | `/posts/` | Token Required | N/A | `200 OK` |
+| **POST** | `/posts/` | Token Required | **Factory & Singleton** | `201 Created` |
+| **PUT** |
