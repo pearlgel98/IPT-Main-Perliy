@@ -4,15 +4,35 @@ from rest_framework import status
 from rest_framework.permissions import IsAuthenticated
 from .models import Post
 from .serializers import PostSerializer
+from .services import PostFactory
 
 @api_view(['GET', 'POST'])
 @permission_classes([IsAuthenticated])
-    # READ ALL
 def post_list(request):
     if request.method == 'GET':
         posts = Post.objects.all()
         serializer = PostSerializer(posts, many=True)
         return Response(serializer.data)
+    
+    # CREATE
+    if request.method == 'POST':
+        serializer = PostSerializer(data=request.data)
+        if serializer.is_valid():
+            # 2. REPLACE serializer.save() with the Factory call
+            # This uses the Factory Pattern to handle the creation logic
+            try:
+                PostFactory.create_post(
+                    user=request.user, 
+                    content=serializer.validated_data['content']
+                )
+                return Response(serializer.data, status=status.HTTP_201_CREATED)
+            except ValueError as e:
+                # This catches errors from your APISettings Singleton (e.g., max length)
+                return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+        
+        print(serializer.errors)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    
 
     # CREATE
     if request.method == 'POST':
