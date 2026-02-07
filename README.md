@@ -33,4 +33,13 @@ The system employs a multi-layered security approach:
 | :--- | :--- | :--- | :--- | :--- |
 | **GET** | `/posts/` | Token Required | N/A | `200 OK` |
 | **POST** | `/posts/` | Token Required | **Factory & Singleton** | `201 Created` |
-| **PUT** |
+| **PUT** | `/posts/<id>/` | **Owner Only** | N/A | `200 OK` |
+| **DELETE** | `/posts/<id>/` | **Owner Only** | N/A | `204 No Content` |
+
+---
+
+## 🧪 Testing Procedures
+The API was rigorously tested using **Postman**. Testing included:
+1. **Validation Testing:** Sending content over 500 characters to trigger Singleton-based rejection (`400 Bad Request`).
+2. **Security Testing:** Attempting unauthorized deletions to verify 403 Forbidden responses.
+3. **Lifecycle Testing:** Verified the full CRUD flow from creation to deletion.
