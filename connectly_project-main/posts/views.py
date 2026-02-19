@@ -18,7 +18,6 @@ def post_list(request):
     if request.method == 'POST':
         serializer = PostSerializer(data=request.data)
         if serializer.is_valid():
-            # 2. REPLACE serializer.save() with the Factory call
             # This uses the Factory Pattern to handle the creation logic
             try:
                 PostFactory.create_post(
