@@ -1,66 +1,52 @@
-# Connectly Project - Advanced Django REST API
+# Connectly API - Design Pattern Implementation
 
-This project is a high-level Social Media REST API built using **Django** and **Django REST Framework (DRF)**. It emphasizes the practical application of software design patterns and secure API architecture.
+This document outlines the custom architectural enhancements made to the Connectly project, focusing on Creational Design Patterns and advanced API logic.
 
 ---
 
 ## 🤖 AI Disclosure
-**Note on Development:** This project was developed by the author with technical assistance from Gemini (AI). The AI served as a support tool for brainstorming design pattern structures and troubleshooting specific syntax errors. The author remains responsible for the final architecture, logic integration, and manual testing of all API endpoints.
+**Note on Development:** This project was developed with the assistance of an AI collaborator (Gemini). AI served as a peer-programming tool to help structure Design Patterns and debug complex serializer logic. The final implementation, architectural review, and manual verification were performed by the author.
 
 ---
 
-## 🚀 Key Features
-* **Post & Comment System**: Full CRUD for posts with nested commenting.
-* **Smart Like Logic**: A single toggle endpoint to handle both liking and unliking.
-* **Design Pattern Integration**: Decoupled logic using Factory and Singleton patterns.
-* **Security**: Token-based authentication and strict object-level permissions.
+## 🛠 Custom Design Patterns
 
----
-
-## 🛠 Design Patterns Implemented
-
-### 1. Singleton Pattern
-* **Location**: `posts/services.py` → `class APISettings`
-* **Purpose**: Manages global API configuration in a single, immutable instance.
-* **Implementation**: Used to define and enforce global limits like `MAX_POST_LENGTH`.
-* **Verification**: The "Singleton Pattern Create" request in the Postman collection demonstrates this pattern blocking requests that exceed the limit.
+### 1. Singleton Pattern (Configuration Management)
+* **File**: `posts/services.py` → `class APISettings`
+* **Implementation**: A thread-safe Singleton that manages global application limits.
+* **Reasoning**: Ensures that the API character limits are consistent across all views and services without redundant database calls or hard-coded strings.
+* **Verification**: Tested via Postman; sending a post body exceeding the `MAX_POST_LENGTH` triggers a `400 Bad Request`.
 
 
 
-### 2. Factory Pattern
-* **Location**: `posts/services.py` → `class PostFactory`
-* **Purpose**: Centralizes and abstracts the creation of `Post` and `Comment` objects.
-* **Implementation**: The View layer delegates object creation to `create_post()` and `create_comment()`.
-* **Benefit**: Simplifies the Views and ensures that any change in creation logic only needs to be updated in one place.
+### 2. Factory Pattern (Object Creation)
+* **File**: `posts/services.py` → `class PostFactory`
+* **Implementation**: Centralized creation logic for `Post` and `Comment` objects.
+* **Reasoning**: Decouples the View layer from the Model layer. This abstraction allows for additional logic (like auto-tagging or notifications) to be added in the future without modifying the View code.
+* **Verification**: All `POST` requests in the Postman collection utilize this factory for object instantiation.
 
 
 
 ---
 
-## 📂 Architecture Overview
+## 📂 Logic & Security Enhancements
 
-### Models
-* **Post**: The core entity for user content.
-* **Comment**: Linked to both a `User` and a `Post`.
-* **Like**: Uses a `unique_together` constraint to ensure a user can only like a post once.
+### 💬 Nested Commenting System
+* Implemented a relationship-aware `Comment` model linked to `Post`.
+* **Serializer Logic**: Updated `PostSerializer` to include a nested `comments` array, providing a complete data tree in a single `GET` request.
 
-### Permissions & Security
-* **Authentication**: Uses `rest_framework.authentication.TokenAuthentication`.
-* **Permissions**: Implemented `IsAuthenticated` for creation and custom logic to ensure only authors can **Update** or **Delete** their own content.
+### ❤️ Smart Like Toggle
+* **Endpoint**: `POST /posts/{id}/like/`
+* **Logic**: Instead of separate like/unlike endpoints, a custom action was created in the ViewSet. It checks for the existence of a `Like` object: if it exists, it deletes it (unlike); if not, it creates it (like).
+
+### 🔒 Author-Only Permissions
+* Beyond basic authentication, custom permission logic was applied to `Update` and `Delete` actions. 
+* **Rule**: While any authenticated user can view posts, only the `author` has the authority to modify or remove them.
 
 ---
 
-## 🧪 Testing with Postman
-A pre-configured Postman collection is included: `Connectly_API.postman_collection.json`.
-
-### Setup Instructions:
-1. **Import** the JSON into Postman.
-2. Under the Collection **Authorization** tab:
-   * **Type**: `API Key`
-   * **Key**: `Authorization`
-   * **Value**: `Token f72bf666c747b0f27b12eab71d7717e7ffd4965f`
-3. **Requests included**:
-   * `Create Post` (Factory Verification)
-   * `Create Comment` (Nested Logic Verification)
-   * `Singleton Pattern Create` (Constraint Verification)
-   * `Update/Delete` (Permissions Verification)
+## 🧪 Postman Verification
+The included `Connectly_API.postman_collection.json` specifically tests the custom logic above:
+1.  **Factory Check**: `Create Post` & `Create Comment`.
+2.  **Singleton Check**: `Singleton Pattern Create` (triggers limit validation).
+3.  **Security Check**: `Update` & `Delete` (verifies author-level access).
