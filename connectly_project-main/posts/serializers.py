@@ -1,34 +1,14 @@
 from rest_framework import serializers
 from django.contrib.auth.models import User
-from .models import Post
+from .models import Post, Comment
 
-
+# 1. User Serializers
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = ['id', 'username', 'email', 'created_at']
+        fields = ['id', 'username', 'email']
 
-class PostSerializer(serializers.ModelSerializer):
-    author_name = serializers.ReadOnlyField(source='author.username')
-    author = serializers.PrimaryKeyRelatedField(read_only=True)
-
-    class Meta:
-        model = Post
-        fields = ['id', 'content', 'author', 'author_name', 'created_at']
-        read_only_fields = ['author']
-
-    def validate_content(self, value):
-        if len(value.strip()) < 5:
-            raise serializers.ValidationError("Content must be at least 5 characters.")
-        return value
-
-    class Meta:
-        model = Post
-        fields = ['id', 'content', 'author', 'author_name', 'created_at']
-
-        
-
-class RegisterSerializer(serializers.ModelSerializer):                    # We add a password field that is 'write_only' so it never leaks in GET requests
+class RegisterSerializer(serializers.ModelSerializer):                
     password = serializers.CharField(write_only=True)
 
     class Meta:
@@ -36,8 +16,6 @@ class RegisterSerializer(serializers.ModelSerializer):                    # We a
         fields = ['username', 'email', 'password']
 
     def create(self, validated_data):
-        # ERROR HANDLING/SECURITY: 
-        # Use create_user (not create) to handle password hashing automatically
         user = User.objects.create_user(
             username=validated_data['username'],
             email=validated_data['email'],
@@ -45,4 +23,26 @@ class RegisterSerializer(serializers.ModelSerializer):                    # We a
         )
         return user
 
-        
+# 2. Comment Serializer 
+class CommentSerializer(serializers.ModelSerializer):
+    author_name = serializers.ReadOnlyField(source='author.username')
+
+    class Meta:
+        model = Comment
+        fields = ['id', 'author_name', 'text', 'created_at']
+
+# 3. Post Serializer
+class PostSerializer(serializers.ModelSerializer):
+    author_name = serializers.ReadOnlyField(source='author.username')
+    author = serializers.PrimaryKeyRelatedField(read_only=True)
+    comments = CommentSerializer(many=True, read_only=True)
+
+    class Meta:
+        model = Post
+        fields = ['id', 'content', 'author', 'author_name', 'created_at', 'comments']
+        read_only_fields = ['author']
+
+    def validate_content(self, value):
+        if len(value.strip()) < 5:
+            raise serializers.ValidationError("Content must be at least 5 characters.")
+        return value
