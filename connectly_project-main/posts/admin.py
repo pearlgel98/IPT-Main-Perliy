@@ -1,12 +1,21 @@
 from django.contrib import admin
-from .models import Post  # Import your Post model
+from .models import Post, Comment, Like
 
-# Register your model here
 @admin.register(Post)
 class PostAdmin(admin.ModelAdmin):
-    # This makes the admin list view show more than just "Post object (1)"
     list_display = ('content', 'author', 'created_at')
-    # This adds a sidebar to filter posts by date or author
     list_filter = ('created_at', 'author')
-    # This adds a search bar for the content
     search_fields = ('content',)
+
+@admin.register(Comment)
+class CommentAdmin(admin.ModelAdmin):
+    # This shows who commented, on what post, and when
+    list_display = ('author', 'post', 'text', 'created_at')
+    list_filter = ('created_at', 'author')
+    search_fields = ('text',)
+
+@admin.register(Like)
+class LikeAdmin(admin.ModelAdmin):
+    # This shows the user and the post they liked
+    list_display = ('user', 'post', 'created_at')
+    list_filter = ('created_at', 'user')
