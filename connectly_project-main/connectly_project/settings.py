@@ -37,9 +37,14 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+
+    # Third-party
     'rest_framework',
     'rest_framework.authtoken',
+
+    # Local apps
     'posts',
+    'authentication', 
 ]
 
 MIDDLEWARE = [
@@ -124,3 +129,14 @@ REST_FRAMEWORK = {
         'rest_framework.authentication.TokenAuthentication',
     ],
 }
+
+
+# Google OAuth Settings
+
+GOOGLE_CLIENT_ID = os.getenv(
+    "GOOGLE_CLIENT_ID",
+    "your-google-client-id.apps.googleusercontent.com"
+)
+
+
+
