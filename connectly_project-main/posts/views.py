@@ -5,6 +5,7 @@ from rest_framework.permissions import IsAuthenticated
 from .models import Post, Comment
 from .serializers import PostSerializer, CommentSerializer 
 from .services import PostFactory
+from rest_framework.pagination import PageNumberPagination
 
 @api_view(['GET', 'POST'])
 @permission_classes([IsAuthenticated])
@@ -54,6 +55,20 @@ def post_detail(request, pk):
             return Response({'error': 'You cannot delete this.'}, status=status.HTTP_403_FORBIDDEN)
         post.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
+
+# --- FEED VIEW ---
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def post_feed(request):
+    posts = Post.objects.all().select_related('author').order_by('-created_at')
+
+    paginator = PageNumberPagination()
+    paginator.page_size = 10 
+    
+    result_page = paginator.paginate_queryset(posts, request)
+    serializer = PostSerializer(result_page, many=True)
+    
+    return paginator.get_paginated_response(serializer.data)
 
 # Like Feature
 @api_view(['POST'])
