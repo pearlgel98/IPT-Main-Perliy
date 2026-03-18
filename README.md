@@ -1,52 +1,59 @@
-# Connectly API - Design Pattern Implementation
+# Connectly Social Media API
 
-This document outlines the custom architectural enhancements made to the Connectly project, focusing on Creational Design Patterns and advanced API logic.
-
----
-
-## 🤖 AI Disclosure
-**Note on Development:** This project was developed with the assistance of an AI collaborator (Gemini). AI served as a peer-programming tool to help structure Design Patterns and debug complex serializer logic. The final implementation, architectural review, and manual verification were performed by the author.
+**Project Overview:** Connectly is a robust, Django-based RESTful API designed for social media interactions. It implements advanced software design patterns, including the **Factory** and **Singleton** patterns, to ensure a scalable and secure architecture for managing users, posts, comments, and likes.
 
 ---
 
-## 🛠 Custom Design Patterns
+## 🤖 AI Disclosure & Collaboration
+This project was developed with the assistance of AI (Gemini). The AI’s involvement was strictly limited to:
+* **Documentation Assistance:** Formatting technical requirements and refining the project's README and API documentation.
+* **Troubleshooting:** Debugging complex environment issues, specifically related to Git branch management and Django Internal Server Errors (500).
+* **Code Review:** Providing feedback on best practices for Role-Based Access Control (RBAC) and performance optimization (N+1 query resolution).
 
-### 1. Singleton Pattern (Configuration Management)
-* **File**: `posts/services.py` → `class APISettings`
-* **Implementation**: A thread-safe Singleton that manages global application limits.
-* **Reasoning**: Ensures that the API character limits are consistent across all views and services without redundant database calls or hard-coded strings.
-* **Verification**: Tested via Postman; sending a post body exceeding the `MAX_POST_LENGTH` triggers a `400 Bad Request`.
-
-
-
-### 2. Factory Pattern (Object Creation)
-* **File**: `posts/services.py` → `class PostFactory`
-* **Implementation**: Centralized creation logic for `Post` and `Comment` objects.
-* **Reasoning**: Decouples the View layer from the Model layer. This abstraction allows for additional logic (like auto-tagging or notifications) to be added in the future without modifying the View code.
-* **Verification**: All `POST` requests in the Postman collection utilize this factory for object instantiation.
-
-
+**The core logic, database architecture, and security protocols were designed and implemented by the primary developer.**
 
 ---
 
-## 📂 Logic & Security Enhancements
+## 🚀 Key Features & API Functions
 
-### 💬 Nested Commenting System
-* Implemented a relationship-aware `Comment` model linked to `Post`.
-* **Serializer Logic**: Updated `PostSerializer` to include a nested `comments` array, providing a complete data tree in a single `GET` request.
+### 1. Advanced News Feed
+* **Endpoint:** `GET /posts/feed/`
+* **Logic:** Features reverse-chronological sorting (`-created_at`) and `PageNumberPagination`.
+* **Optimization:** Employs `select_related('author')` to optimize database hits and prevent N+1 query issues.
 
-### ❤️ Smart Like Toggle
-* **Endpoint**: `POST /posts/{id}/like/`
-* **Logic**: Instead of separate like/unlike endpoints, a custom action was created in the ViewSet. It checks for the existence of a `Like` object: if it exists, it deletes it (unlike); if not, it creates it (like).
+### 2. Role-Based Access Control (RBAC) & Privacy
+* **Logic:** Implemented strict data visibility rules using Django `Q` objects.
+* **Filtering:** Users can only view "Public" posts or posts they authored.
+* **Admin Override:** Staff members have full visibility across all post resources for administrative oversight.
 
-### 🔒 Author-Only Permissions
-* Beyond basic authentication, custom permission logic was applied to `Update` and `Delete` actions. 
-* **Rule**: While any authenticated user can view posts, only the `author` has the authority to modify or remove them.
+### 3. Factory Design Pattern
+* **Service Layer:** All post, comment, and like creation logic is abstracted into a `PostFactory` class.
+* **Benefit:** Decouples the API views from the database models, ensuring consistent object instantiation.
+
+### 4. Singleton Pattern Integration
+* **Global Constraints:** A Singleton configuration object enforces global business rules, such as character limits for post content, across the entire application.
+
+### 5. Dynamic Engagement Metrics (Like Count)
+* **Logic:** Uses a `SerializerMethodField` in the Serializer to calculate like counts in real-time.
+* **Performance:** Instead of storing a redundant integer, the API performs an optimized SQL `COUNT` on the related `Like` model.
+
+### 6. Social Interaction Toggle
+* **Endpoint:** `POST /posts/<id>/like/`
+* **Logic:** A smart toggle function that automatically creates a "Like" relationship if it doesn't exist, or removes it (Unlike) if it does.
+
+### 7. Commenting System (Weak Entity Logic)
+* **Endpoint:** `POST /posts/<id>/comments/`
+* **Logic:** Handles relational integrity between posts and comments, ensuring comments are correctly mapped as weak entities to the parent post.
 
 ---
 
-## 🧪 Postman Verification
-The included `Connectly_API.postman_collection.json` specifically tests the custom logic above:
-1.  **Factory Check**: `Create Post` & `Create Comment`.
-2.  **Singleton Check**: `Singleton Pattern Create` (triggers limit validation).
-3.  **Security Check**: `Update` & `Delete` (verifies author-level access).
+## 🛠 Tech Stack
+* **Backend:** Django & Django Rest Framework (DRF)
+* **Database:** SQLite (Development)
+* **Patterns:** Factory, Singleton, RBAC
+* **Testing:** Postman (with automated pre-request and test scripts)
+
+
+1. **Clone the repository:**
+   ```bash
+   git clone [https://github.com/Mitchy3002/IPT-Main.git](https://github.com/Mitchy3002/IPT-Main.git)
