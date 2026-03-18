@@ -36,11 +36,17 @@ class PostSerializer(serializers.ModelSerializer):
     author_name = serializers.ReadOnlyField(source='author.username')
     author = serializers.PrimaryKeyRelatedField(read_only=True)
     comments = CommentSerializer(many=True, read_only=True)
+    like_count = serializers.SerializerMethodField()
 
     class Meta:
         model = Post
-        fields = ['id', 'content', 'author', 'author_name', 'created_at', 'comments']
+        fields = [
+            'id', 'content', 'author', 'author_name', 
+            'privacy', 'created_at', 'comments', 'like_count'
+        ]
         read_only_fields = ['author']
+    def get_like_count(self, obj):
+        return obj.likes.count()
 
     def validate_content(self, value):
         if len(value.strip()) < 5:

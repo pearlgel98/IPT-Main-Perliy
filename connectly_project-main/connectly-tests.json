@@ -1,0 +1,140 @@
+{
+	"info": {
+		"name": "Connectly System - Full Assessment Suite",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "1. Authentication & Session",
+			"item": [
+				{
+					"name": "Login: OAuth Callback",
+					"request": {
+						"method": "GET",
+						"url": "{{base_url}}/api/auth/callback/?code={{temp_code}}",
+						"description": "Exchanges Google code for a Token. LABEL: Authentication."
+					}
+				},
+				{
+					"name": "Logout: Revoke Token",
+					"request": {
+						"method": "POST",
+						"url": "{{base_url}}/api/auth/logout/",
+						"description": "Deletes the token from the database. LABEL: Security."
+					}
+				}
+			]
+		},
+		{
+			"name": "2. Post CRUD (Public & Private)",
+			"item": [
+				{
+					"name": "CREATE: Public Post",
+					"request": {
+						"method": "POST",
+						"url": "{{base_url}}/api/posts/",
+						"body": { "mode": "raw", "raw": "{\"content\": \"Hello World\", \"privacy\": \"public\"}" },
+						"description": "LABEL: Factory Pattern / Public CRUD."
+					}
+				},
+				{
+					"name": "CREATE: Private Post",
+					"request": {
+						"method": "POST",
+						"url": "{{base_url}}/api/posts/",
+						"body": { "mode": "raw", "raw": "{\"content\": \"Secret Note\", \"privacy\": \"private\"}" },
+						"description": "LABEL: Factory Pattern / Private CRUD."
+					}
+				},
+				{
+					"name": "READ: List Feed",
+					"request": { "method": "GET", "url": "{{base_url}}/api/posts/feed/" },
+					"description": "LABEL: Privacy Filter (Q Objects). Only shows public or owned posts."
+				},
+				{
+					"name": "UPDATE: Edit Own Post",
+					"request": {
+						"method": "PUT",
+						"url": "{{base_url}}/api/posts/{{own_post_id}}/",
+						"body": { "mode": "raw", "raw": "{\"content\": \"Updated content\", \"privacy\": \"public\"}" }
+					}
+				},
+				{
+					"name": "DELETE: Delete Own Post",
+					"request": { "method": "DELETE", "url": "{{base_url}}/api/posts/{{own_post_id}}/" }
+				}
+			]
+		},
+		{
+			"name": "3. Design Pattern Enforcement",
+			"item": [
+				{
+					"name": "Singleton: Content Length Violation",
+					"request": {
+						"method": "POST",
+						"url": "{{base_url}}/api/posts/",
+						"body": { "mode": "raw", "raw": "{\"content\": \"[Generate a string longer than 500 chars...]\"}" },
+						"description": "LABEL: Singleton (APISettings). Expected: 400 Bad Request."
+					}
+				}
+			]
+		},
+		{
+			"name": "4. Social Features (Likes & Comments)",
+			"item": [
+				{
+					"name": "Like a Post",
+					"request": { "method": "POST", "url": "{{base_url}}/api/posts/{{target_id}}/like/" }
+				},
+				{
+					"name": "Add a Comment",
+					"request": {
+						"method": "POST",
+						"url": "{{base_url}}/api/posts/{{target_id}}/comments/",
+						"body": { "mode": "raw", "raw": "{\"text\": \"This is a test comment.\"}" }
+					}
+				}
+			]
+		},
+		{
+			"name": "5. RBAC & Privacy Security Gates",
+			"item": [
+				{
+					"name": "RBAC Fail: User Edit Admin Post",
+					"request": {
+						"method": "PUT",
+						"url": "{{base_url}}/api/posts/{{admin_post_id}}/",
+						"body": { "mode": "raw", "raw": "{\"content\": \"Attempted Hack\"}" },
+						"description": "Expected: 403 Forbidden."
+					}
+				},
+				{
+					"name": "RBAC Success: Admin Delete User Post",
+					"request": {
+						"method": "DELETE",
+						"url": "{{base_url}}/api/posts/{{user_post_id}}/",
+						"description": "Expected: 204 No Content. Tests Admin override (is_staff)."
+					}
+				},
+				{
+					"name": "Privacy Fail: View Others Private Post",
+					"request": {
+						"method": "GET",
+						"url": "{{base_url}}/api/posts/{{others_private_id}}/",
+						"description": "Expected: 403 Forbidden."
+					}
+				}
+			]
+		}
+	],
+	"variable": [
+		{ "key": "base_url", "value": "http://localhost:8000" },
+		{ "key": "token", "value": "" },
+		{ "key": "temp_code", "value": "" },
+		{ "key": "own_post_id", "value": "" },
+		{ "key": "admin_post_id", "value": "" },
+		{ "key": "user_post_id", "value": "" },
+		{ "key": "others_private_id", "value": "" },
+		{ "key": "target_id", "value": "" }
+	]
+}

@@ -5,12 +5,21 @@ class Post(models.Model):
     content = models.TextField()
     author = models.ForeignKey(User, on_delete=models.CASCADE, related_name='posts')
     created_at = models.DateTimeField(auto_now_add=True)
+    
+    PRIVACY_CHOICES = [
+        ('public', 'Public'),
+        ('private', 'Private'),
+    ]
+    
+    privacy = models.CharField(
+        max_length=10, 
+        choices=PRIVACY_CHOICES
+    )
 
     def __str__(self):
-        return f"{self.author.username}: {self.content[:30]}"
+        return f"{self.author.username} - {self.content[:20]}"
 
 class Comment(models.Model):
-    # related_name='comments' allows us to use post.comments.all() in views
     post = models.ForeignKey(Post, on_delete=models.CASCADE, related_name='comments')
     author = models.ForeignKey(User, on_delete=models.CASCADE)
     text = models.TextField()
@@ -25,7 +34,6 @@ class Like(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
-        # This prevents a user from liking the same post multiple times
         unique_together = ('post', 'user')
 
     def __str__(self):
