@@ -7,19 +7,24 @@ class APISettings:
         if cls._instance is None:
             cls._instance = super(APISettings, cls).__new__(cls)
             cls._instance.max_content_length = 500
-            cls._instance.max_comment_length = 200 # <-- ADDITION
+            cls._instance.max_comment_length = 200 
         return cls._instance
 
 # FACTORY PATTERN: Centralized Creation
 class PostFactory:
     @staticmethod
-    def create_post(user, content):
+    def create_post(user, content, privacy='public'): 
         settings = APISettings()
         if len(content) > settings.max_content_length:
             raise ValueError("Content exceeds allowed limit.")
-        return Post.objects.create(author=user, content=content)
+        
+        return Post.objects.create(
+            author=user, 
+            content=content, 
+            privacy=privacy
+        )
 
-    # --- ADDITION: Comment Factory ---
+    # --- Comment Factory ---
     @staticmethod
     def create_comment(user, post, text):
         settings = APISettings()
@@ -30,7 +35,7 @@ class PostFactory:
         
         return Comment.objects.create(author=user, post=post, text=text)
 
-    # --- ADDITION: Like Toggle Logic ---
+    # --- Like Toggle Logic ---
     @staticmethod
     def toggle_like(user, post):
         like, created = Like.objects.get_or_create(user=user, post=post)
