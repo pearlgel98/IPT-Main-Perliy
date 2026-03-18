@@ -53,7 +53,3 @@ This project was developed with the assistance of AI (Gemini). The AI’s involv
 * **Patterns:** Factory, Singleton, RBAC
 * **Testing:** Postman (with automated pre-request and test scripts)
 
-
-1. **Clone the repository:**
-   ```bash
-   git clone [https://github.com/Mitchy3002/IPT-Main.git](https://github.com/Mitchy3002/IPT-Main.git)
