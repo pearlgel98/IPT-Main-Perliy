@@ -3,10 +3,11 @@ from rest_framework.decorators import api_view, permission_classes
 from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.permissions import IsAuthenticated
-from .models import Post, Comment
+from .models import Post
 from .serializers import PostSerializer, CommentSerializer 
 from .services import PostFactory
 from rest_framework.pagination import PageNumberPagination
+from django.views.decorators.cache import cache_page
 
 @api_view(['GET', 'POST'])
 @permission_classes([IsAuthenticated]) 
@@ -67,6 +68,7 @@ def post_detail(request, pk):
         return Response(status=status.HTTP_204_NO_CONTENT)
 
 # --- FEED VIEW ---
+@cache_page(60)
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def post_feed(request):
@@ -74,8 +76,8 @@ def post_feed(request):
         posts = Post.objects.all()
     else:
         posts = Post.objects.filter(Q(privacy='public') | Q(author=request.user))
-    
-    posts = posts.select_related('author').order_by('-created_at')
+
+    posts = posts.select_related('author').prefetch_related('comments', 'likes').order_by('-created_at')
 
     paginator = PageNumberPagination()
     paginator.page_size = 10 
