@@ -82,10 +82,6 @@ def google_callback(request):
 @authentication_classes([TokenAuthentication])
 @permission_classes([IsAuthenticated])
 def google_logout(request):
-    # ADD THESE TWO LINES HERE:
-    print(f"DEBUG: User is {request.user}")
-    print(f"DEBUG: Auth Token is {request.auth}")
-    print(f"DEBUG: Headers: {request.META.get('HTTP_AUTHORIZATION')}")
 
     try:
         # Check if the token exists before deleting
@@ -94,5 +90,4 @@ def google_logout(request):
             return Response({"message": "Successfully logged out. Token deleted."}, status=status.HTTP_200_OK)
         return Response({"error": "No active token found to delete."}, status=status.HTTP_400_BAD_REQUEST)
     except Exception as e:
-        print(f"DEBUG: Error during logout: {str(e)}")
         return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
