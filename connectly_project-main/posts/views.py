@@ -9,6 +9,7 @@ from .services import PostFactory
 from rest_framework.pagination import PageNumberPagination
 from django.views.decorators.cache import cache_page
 
+@cache_page(30)
 @api_view(['GET', 'POST'])
 @permission_classes([IsAuthenticated]) 
 def post_list(request):
@@ -68,7 +69,7 @@ def post_detail(request, pk):
         return Response(status=status.HTTP_204_NO_CONTENT)
 
 # --- FEED VIEW ---
-@cache_page(60)
+@cache_page(30)
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def post_feed(request):
