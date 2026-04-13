@@ -1,5 +1,14 @@
+import requests
 from .models import Post, Comment, Like
 
+
+def get_user_tasks(user_id):
+    try:
+        response = requests.get(f"http://127.0.0.1:8001/tasks/?user={user_id}")
+        reutrn response.json()
+    except:
+        return []
+    
 # SINGLETON PATTERN: Configuration
 class APISettings:
     _instance = None

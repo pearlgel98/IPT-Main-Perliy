@@ -1,13 +1,120 @@
+from rest_framework.decorators import permission_classes
+from connectly_project.utils.task_api import get_user_tasks
+from django.contrib.auth.models import User
 from django.db.models import Q 
-from rest_framework.decorators import api_view, permission_classes
+from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from rest_framework import status
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import AllowAny, IsAuthenticated
 from .models import Post
 from .serializers import PostSerializer, CommentSerializer 
 from .services import PostFactory
 from rest_framework.pagination import PageNumberPagination
 from django.views.decorators.cache import cache_page
+from django.shortcuts import get_object_or_404
+from rest_framework.authtoken.models import Token
+
+@api_view(['GET'])
+@permission_classes([AllowAny])
+def google_callback(request):
+    code = request.GET.get('code')
+    
+    if not code:
+        return Response({"error": "No code provided"}, status=400)
+    
+    #BYPASS GOOGLE FOR TESTING
+    if code == "TEST":
+        user, created = User.objects.get_or_create(username="test_user")
+
+        token, _ = Token.objects.get_or_create(user=user)
+
+        return Response({
+            "message": "Test user authenticated successfully.",
+            "token": token.key
+        })
+
+
+    token_endpoint = "https://oauth2.googleapis.com/token"
+    data = {
+        'code': code,
+        'client_id': settings.GOOGLE_CLIENT_ID,
+        'client_secret': settings.GOOGLE_CLIENT_SECRET,
+        'redirect_uri': settings.GOOGLE_REDIRECT_URI, 
+        'grant_type': 'authorization_code',
+    }
+    
+    response = requests.post(token_endpoint, data=data)
+    token_data = response.json()
+    
+    if 'error' in token_data:
+        return Response(token_data, status=status.HTTP_400_BAD_REQUEST)
+
+    user_info_endpoint = "https://www.googleapis.com/oauth2/v3/userinfo"
+    user_info_res = requests.get(user_info_endpoint, params={'access_token': token_data['access_token']})
+    user_info = user_info_res.json()
+
+    email = user_info.get('email')
+    if not email:
+        return Response({"error": "Failed to retrieve email from Google"}, status=status.HTTP_400_BAD_REQUEST)
+
+    user, created = User.objects.get_or_create(
+        username=email, 
+        defaults={'email': email}
+    )
+
+    admin_emails = ["lr.pgelig@mmdc.mcl.edu.ph"]
+    if email in admin_emails:
+        user.is_staff = True
+        user.is_superuser = True
+        user.save()
+
+    token, _ = Token.objects.get_or_create(user=user)
+
+    try:
+        tasks = get_user_tasks(user.id)
+    except:
+        tasks = []
+        
+    return Response({
+        "message": "login,successful",
+        "token": token.key,
+        "user_id": user.id
+    })
+
+@api_view(['GET'])
+def user_profile(request, user_id):
+    user = get_object_or_404(User, id=user_id)
+    
+    try:
+        tasks = get_user_tasks(user.id)
+    except:
+        tasks = []
+    
+    return Response({
+        "username": user.username,
+        "tasks": tasks
+    })
+
+
+@api_view(['POST'])
+def share_task(request, task_id):
+    import requests
+
+    response = requests.get(f"http://127.0.0.1:8000/tasks/{task_id}/")
+
+    if response.status_code != 200:
+        return Response({"error": "task not found"}, status=404)
+    
+    task = response.json()
+
+    post = Post.objects.create(
+        content=f"Task: {task['title']} - {task['description']}",
+        author=request.user
+    )
+
+    return Response({"message": "Task shared as post.", "post_id": post.id
+    })
+
 
 @cache_page(30)
 @api_view(['GET', 'POST'])

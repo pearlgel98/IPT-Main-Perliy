@@ -8,6 +8,7 @@ from pathlib import Path
 
 # 1. BASE PATHS & ENV LOADING
 BASE_DIR = Path(__file__).resolve().parent.parent
+load_dotenv(BASE_DIR / ".env")
 load_dotenv(os.path.join(BASE_DIR, '.env'))
 
 # 2. CORE SECURITY

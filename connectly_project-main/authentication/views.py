@@ -58,7 +58,7 @@ def google_callback(request):
         defaults={'email': email}
     )
 
-    admin_emails = ["lr.dmsanpascual@mmdc.mcl.edu.ph"]
+    admin_emails = ["lr.pgelig@mmdc.mcl.edu.ph"]
     if email in admin_emails and not user.is_staff:
         user.is_staff = True
         user.is_superuser = True 
