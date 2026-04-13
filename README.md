@@ -98,3 +98,47 @@ This project was developed with the assistance of AI (Gemini). The AI’s involv
 * **Patterns:** Factory, Singleton, RBAC
 * **Testing:** Postman (with automated pre-request and test scripts)
 
+## 🔗 Task Management API Integration
+
+This project integrates an external Task Management API into the Connectly application.
+
+### 📌 Features Implemented
+
+#### 1. Display Tasks on User Profile
+- Fetches tasks from the Task Management API
+- Displays tasks associated with the logged-in user
+- Ensures only user-specific tasks are shown
+
+#### 2. Share Tasks as Posts
+- Allows users to share task details as Connectly posts
+- Task data is retrieved from the Task API and formatted as a post
+
+### 🔄 Integration Approach
+
+- Connectly communicates with the Task API using HTTP requests
+- APIs remain independent but connected through service calls
+- Authentication ensures only authorized users can access tasks
+
+---
+
+### 🧪 Testing
+
+The integration was tested using Postman:
+- Verified task retrieval from Task API
+- Tested sharing tasks as posts
+- Checked proper user-task association
+- Validated error handling
+
+---
+
+### ⚠️ Challenges & Solutions
+
+- **Challenge:** OAuth token expiration  
+  **Solution:** Ensured code is used immediately after generation  
+
+- **Challenge:** API communication between two services  
+  **Solution:** Used consistent endpoints and proper request handling  
+
+- **Challenge:** User-task mapping  
+  **Solution:** Matched users using email from Google OAuth  
+
